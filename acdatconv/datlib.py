@@ -5,7 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import openpyxl
 import pandas as pd
-from pandas.io.json import json_normalize
+
+# from pandas.io.json import json_normalize
+
+from pandas import json_normalize
 
 from acdatconv import datconv as dv
 
