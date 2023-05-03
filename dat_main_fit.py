@@ -79,8 +79,8 @@ if uploaded_file is not None:
     y_fit4 = m_relu(xx, *fit_param4)
 
     
-    # 2つのグラフを縦に並べる
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(6, 12)) #6.4 wide and 4.8 high
+    # 3つのグラフを縦に並べる
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(6, 12)) # (wide ,high)
 
     ax1.set_title(f'{acdata.metadata["sampleName"]}')
     ax1.plot(xx,acdata.df["npyield"],'ro-',label='Data')
@@ -142,10 +142,3 @@ if uploaded_file is not None:
     #                     file_name=f'{save_name}.json',
     #                     mime="application/json",
     #                     )
-    
-
-
-
-        
-    
-
