@@ -5,3 +5,4 @@ openpyxl
 japanize_matplotlib
 streamlit
 streamlit-aggrid
+scikit-learn
