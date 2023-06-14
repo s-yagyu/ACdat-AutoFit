@@ -18,6 +18,49 @@ from acdatconv import datlib as dlib
 from pfit import power_fit as pof
 
 # -----
+def spike_remove(xdata,ydata):
+        # dat fileでOverflowのデータは0。
+    def find_first_positive_index(arr):
+        """後ろから探索して最初に見つかる正の数のインデックスを取得
+        Args:
+            arr (ndarray): ndarray
+
+        Returns:
+            int: index
+            
+        # テスト用の配列
+        array = np.array([-3, -2, 0, -1, 4, 5, -6])
+        print(len(array))
+        index = find_first_positive_index(array)
+        if index != -1:
+            print("最初の正の数はインデックス", index, "にあります。")
+        else:
+            print("正の数は見つかりませんでした。")
+        
+        >>>最初の正の数はインデックス 5 にあります。
+        
+        """
+        for i in range(len(arr)-1, -1, -1):
+            if arr[i] > 0:
+                return i
+        return -1  # 正の数が見つからなかった場合
+    
+    index = find_first_positive_index(ydata)
+    # print(index)
+    if index != len(ydata)-1:
+        xdata = xdata[:index]
+        ydata = ydata[:index]
+
+    # もう一度繰り返す
+    index = find_first_positive_index(ydata)
+    # print(index)
+    if index != len(ydata)-1:
+        xdata = xdata[:index]
+        ydata = ydata[:index]
+        
+    return xdata, ydata 
+
+#-----
 
 st.title('AC Dat Auto Estimation')
 
@@ -43,6 +86,11 @@ if uploaded_file is not None:
     xx = acdata.df["uvEnergy"].values
     yy = acdata.df["pyield"].values  
     
+    # カウントが振り切った値を削除
+    xx, yy = spike_remove(xx,yy)
+    leng = len(xx)
+    
+    
     pysA2 = pof.PfAnalysis(xx,yy)
     pysA2.estimate(power_num=2,info=False,ini_para=None,retry_r2=0.9)
         
@@ -64,7 +112,7 @@ if uploaded_file is not None:
     
     ax2 = pof.plot3_pw_ax(pysA2.res_pof["rex"], pysA2.res_pof["rey"],
                             m_xdata=pysA2.res_pof["rex"],m_ydata=pysA2.res_pof["fit"],
-                            n_xdata=pysA2.res_pof["rex"], n_ydata= acdata.df["guideline"], 
+                            n_xdata=pysA2.res_pof["rex"][:leng], n_ydata= acdata.df["guideline"][:leng], 
                             breakpoints=[pysA2.res_pof["popt"][1],acdata.metadata["thresholdEnergy"]], 
                             title=f'1/n=1/2 R2:{pysA2.res_pof["r2"]:.3f}, R2S:{pysA2.res_pof["r2_bp"]:.3f}',  
                             #  breakpoints=None, 
@@ -81,6 +129,7 @@ if uploaded_file is not None:
                             axi=ax3)
             
     
+    # if pysA2.res_pof["r2"] > pysA3.res_pof["r2"] and pysA2.res_pof["r2_bp"] > pysA3.res_pof["r2_bp"]:
     if pysA2.res_pof["r2"] > pysA3.res_pof["r2"]:
         likeli_Ip = pysA2.res_pof["popt"][1]
         likeli_power = '1/2'
