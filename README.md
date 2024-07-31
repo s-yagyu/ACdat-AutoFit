@@ -5,7 +5,7 @@ Version 0　20240731にVersion1に移行しました。
 理研計器ACシリーズで測定したdatファイルをアップロードすると、自動で閾値を推定するお試し版のWebアプリです。
 （あくまでもお試しですので、利用者の責任で閾値の最終判断をしてください。）
 
-[https://s-yagyu-acdat-autofit-main-dat-autofit-wvzmv2.streamlit.app/](https://acdat-autofit-5ea7h7llssmahgky9kh5dv.streamlit.app/)
+https://acdat-autofit-5ea7h7llssmahgky9kh5dv.streamlit.app/
 
 測定結果の1/2乗、1/3乗を計算して、拡張されたReLU関数をFitting関数として、最小化関数として絶対誤差を用いて推定を行っています。
 
