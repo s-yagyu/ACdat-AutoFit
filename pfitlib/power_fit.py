@@ -833,7 +833,7 @@ def xshift_search(xdata, ydata, search_range,
                                lim_val=lim_val, fit_type=fit_type, 
                                comment=f'shift: {shift:.2f}', info=info, plot=every_plot)
         
-        if not math.isnan(res_para['r2']):
+        if not np.isnan(res_para['r2']):
             applied_search_range.append(shift)
             power.append(res_para['popt'][0])
             r2.append(res_para['r2'])
@@ -928,7 +928,7 @@ def xpower_search(xdata, ydata, search_range=None,
                                        ini_params=None, min_error=min_error,
                                        zero_replace=zero_replace, plot=every_plot, info=info)
         
-        if not math.isnan(res_para['r2']):
+        if not np.isnan(res_para['r2']):
             applied_search_range.append(power_num)
             shift.append(res_para['popt'][1])
             r2.append(res_para['r2'])
