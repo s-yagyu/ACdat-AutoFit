@@ -10,23 +10,37 @@ Licence: BSD 3-Clause License
 3. Zip download includes results image by png, all infomation by text and toml
 
 """
+import datetime
 from io import BytesIO, StringIO
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-import zipfile
 import toml
+import zipfile
 
-import streamlit as st
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+import streamlit as st
 
 from reader import datconv as dv
 from pfitlib import power_fit as pf
 
 cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
-def plot_ac_inst_invanalysis(ac_inst):
+# Flatten the dictionary
+def flatten_dict(d, parent_key='', sep='_'):
+    items = []
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep=sep).items())
+        elif isinstance(v, list):
+            items.append((new_key, ','.join(map(str, v))))
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
+def plot_ac_inst_invanalysis(ac_inst,original_filename):
     xx = ac_inst.df["uvEnergy"].values
     yy = ac_inst.df["pyield"].values 
     
@@ -36,7 +50,7 @@ def plot_ac_inst_invanalysis(ac_inst):
     pysi2 = pf.const_inv_power_fit(xx,yy,2)
     pysi3 = pf.const_inv_power_fit(xx,yy,3)
     
-    # figure
+    # --- figure
     fig = plt.figure(figsize=(18,6), tight_layout=True)
     ax1 = fig.add_subplot(1, 3, 1)
     ax2 = fig.add_subplot(1, 3, 2)
@@ -95,8 +109,10 @@ def plot_ac_inst_invanalysis(ac_inst):
         likeli_Ip =  pysi3["popt"][1]
         likeli_slope =  pysi3["popt"][0]
         likeli_power = '1/3'
-        
+    
+    # --- info    
     s_info=f'\
+    {original_filename}\n\
     {ac_inst.metadata["sampleName"]}\n\
     1/2 R2:{pysi2["r2"]:.3f}, R2S:{pysi2["r2_bp"]:.3f}\n\
     Ip={pysi2["popt"][1]:.2f}, Slope={pysi2["popt"][0]:.2f}\n\
@@ -106,7 +122,9 @@ def plot_ac_inst_invanalysis(ac_inst):
     Ip={ac_inst.estimate_value["thresholdEnergy"]:.2f}, Slope={ac_inst.estimate_value["slope"]:.2f}\n\
     Auto likelihood: 1/n={likeli_power}, Ip={likeli_Ip:.2f}, Slope={likeli_slope:.2f}'
     
-    s_dict={'sample': ac_inst.metadata["sampleName"],
+    # --- info dict
+    s_dict={'file':original_filename,
+            'sample': ac_inst.metadata["sampleName"],
             'inv2':{
                 'R2':pysi2["r2"],
                 'R2bp':pysi2["r2_bp"],
@@ -127,7 +145,7 @@ def plot_ac_inst_invanalysis(ac_inst):
                 'Bg':ac_inst.estimate_value["bg"]   
                 },
             'likeli':{
-                'inv':likeli_power,
+                'inv':str(likeli_power),
                 'Ip': likeli_Ip, 
                 'Slope': likeli_slope 
                 }
@@ -143,6 +161,7 @@ def main():
     uploaded_files = st.file_uploader("dat files upload", accept_multiple_files=True, type=["dat"])
 
     infos = []
+    dict_infos = []
     if uploaded_files:
         for uploaded_file in uploaded_files:
             with NamedTemporaryFile(delete=False) as f:
@@ -154,13 +173,14 @@ def main():
 
             fp.unlink()
             
-            fig, info, info_dict = plot_ac_inst_invanalysis(acdata)   
+            fig, info, info_dict = plot_ac_inst_invanalysis(acdata, uploaded_file.name )   
             st.text('*-'*25)
             st.text(info)
             st.text('-*'*25)
     
             st.pyplot(fig)
             infos.append((fig, info, info_dict, uploaded_file.name))
+            dict_infos.append(info_dict)
 
         def create_zip():
             in_memory = BytesIO()
@@ -168,6 +188,7 @@ def main():
                 for fig, info, dict_info, name in infos:
                     img_bytes = BytesIO()
                     toml_bytes = StringIO()
+                    
                     fig.savefig(img_bytes, format='png')
                     img_bytes.seek(0)
                     zf.writestr(f"{Path(name).stem}.png", img_bytes.read())
@@ -176,7 +197,17 @@ def main():
                     toml.dump(dict_info,toml_bytes)
                     toml_bytes.seek(0)    
                     zf.writestr(f"{Path(name).stem}.toml", toml_bytes.read())
-                   
+                
+                # make Summary Data    
+                csv_bytes = BytesIO()
+                # nest dict to flat
+                flat_list = [flatten_dict(d) for d in dict_infos]
+                df_dict = pd.DataFrame(flat_list)
+                df_dict.to_csv(csv_bytes, index=False, encoding='utf-8')
+                csv_bytes.seek(0)
+                t_now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                zf.writestr(f'Summary_{t_now}.csv', csv_bytes.read())
+                
             in_memory.seek(0)
             
             return in_memory
