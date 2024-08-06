@@ -7,7 +7,7 @@
 
 https://acdat-autofit-huy3ftxmaqjr4ivninr3rh.streamlit.app/
 
-測定結果の1/2乗、1/3乗を計算して、拡張されたReLU関数をFitting関数として、最小化関数として絶対誤差を用いて推定を行っています。
+測定結果の1/2乗、1/3乗を計算して、拡張されたReLU関数 [1]をFitting関数として、最小化関数として絶対誤差を用いて推定を行っています。
 
 それぞれのべき乗に対してFittingの当てはまり（決定係数）を評価し、決定係数が1に近い方を推奨としています。
 
@@ -23,11 +23,11 @@ R2が全体の決定係数、R2Sが閾値よりエネルギーが高い領域の
 
 賛同いただけたらこちらの論文をリファレンスに入れて頂けるとありがたいです。
 
-- 柳生 進二郎, 吉武 道子, 長田 貴弘. べき乗則で解釈されるスペクトルの閾値及びべき乗数の自動解析方法. 
+- [1] Shinjiro Yagyu , Michiko Yoshitake, Takahiro Nagata; Automatic Analysis Method for the Threshold and Power Exponent of Spectra Interpreted by the Power Law.
 Journal of Surface Analysis. 30 [2] (2023) 98-112 10.1384/jsa.30.98 
 https://doi.org/10.1384/jsa.30.98
 
-- 柳生 進二郎. 大気中光電子収量分光装置（理研計器ACシリーズ）の計測ファイル用 メタデータ抽出プログラム.
+- [2] Shinjiro Yagyu; Program for Extracting Metadata from Measurement files of the Photoelectron Yield Spectrometer in Air (AC series by RIKEN KEIKI Co., Ltd.)
 Journal of Surface Analysis. 29 [2] (2022) 97-110 10.1384/jsa.29.97
 https://doi.org/10.1384/jsa.29.97
 
@@ -48,9 +48,10 @@ PYSの強度を1/2、1/3乗したグラフぞれぞれにReLU関数でのFitting
 比較の結果、１つ目のデータは1/2乗の方が当てはまりがよいので、1/2乗で解析した閾値が選ばれています。なお、1/2乗のUserの線は人が引いた線です。
 
 Download(zip) ボタンを押すとグラフと解析結果のレポートのダウンロードができます。
-- グラフイメージ
+- グラフイメージ　png形式
 - 解析結果　Text形式
-- 解析結果　Toml形式（Txdで読み込むこともできます。）
+- 解析結果　Toml形式（Text editorで開くことができます。）※Tomlは、Key, valueで記述された形式。
+- 複数アップロードの解析結果のまとめ　CSV形式
 
 ![AF03](./figs/AF03.png)
 
