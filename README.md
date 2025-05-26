@@ -7,13 +7,13 @@
 
 https://acdat-autofit-huy3ftxmaqjr4ivninr3rh.streamlit.app/
 
-測定結果の1/2乗、1/3乗を計算して、拡張されたReLU関数 [1]をFitting関数として、最小化関数として絶対誤差を用いて推定を行っています。
+測定結果の1/2乗、1/3乗を計算して、拡張されたReLU関数 [1]をFitting関数として、最小化関数として絶対誤差を用いて閾値の推定を行います。
 
 それぞれのべき乗に対してFittingの当てはまり（決定係数：R2）を評価し、決定係数が1に近い方を推奨としています。
 
 R2が全体の決定係数、R2Sが閾値よりエネルギーが高い領域のみで計算した決定係数です。バックグラウンド成分に大きなノイズが乗っているときはR2Sの方の指標を優先した方がよいかもしれません。
 
-なお、datファイルフォーマットの仕様および変換については理研計器社にお問い合わせください。
+なお、datファイルフォーマットへの変換及び仕様については理研計器社にお問い合わせください。
 
 理研計器社が配布している変換ツール
 
@@ -31,6 +31,7 @@ https://doi.org/10.1384/jsa.30.98
 Journal of Surface Analysis. 29 [2] (2022) 97-110 10.1384/jsa.29.97
 https://doi.org/10.1384/jsa.29.97
 
+- [3] Shinjiro Yagyu, Michiko Yoshitake, Takahiro Nagata, Takeshi Yasuda, Takatsugu Wakahara, Yubin Liu, Yoshiyuki Nakajima. Automated analysis of photoelectron yield spectroscopy spectra interpreted via power laws. Science and Technology of Advanced Materials: Methods. 5 [1] (2025) 2465257 https://doi.org/10.1080/27660400.2025.2465257
 ---
 
 ![AF01](./figs/AF01.png)
