@@ -1,13 +1,17 @@
 """
 Create: 2024/07/31
+
 Shinjiro Yagyu
 
 Licence: BSD 3-Clause License
 
-
 1. upload dat files -> read dat file
 2. fitting with 1/2, 1/3 power data
 3. Zip download includes results image by png, all infomation by text and toml
+
+Updata : 2025/05/26
+Updates to Pfitlib and reader modules
+Limits on maximum counts and maximum energy for ACdata
 
 """
 import datetime
@@ -23,7 +27,7 @@ import pandas as pd
 import streamlit as st
 
 from reader import datconv as dv
-from pfitlib import power_fit as pf
+from pfitlib import loglog_fit as pf
 
 cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
@@ -44,9 +48,6 @@ def plot_ac_inst_invanalysis(ac_inst,original_filename):
     xx = ac_inst.df["uvEnergy"].values
     yy = ac_inst.df["pyield"].values 
     
-    xx, yy = dv.spike_remove(xx,yy)
-    leng = len(xx)
-    
     pysi2 = pf.const_inv_power_fit(xx,yy,2)
     pysi3 = pf.const_inv_power_fit(xx,yy,3)
     
@@ -58,8 +59,8 @@ def plot_ac_inst_invanalysis(ac_inst,original_filename):
     
     ax1.set_title(f'{ac_inst.metadata["sampleName"]}')    
     ax1.plot(xx, yy, color=cycle[0], marker="o",label='Data')
-    ax1.set_xlabel('Energy')
-    ax1.set_ylabel('$PYS$')
+    ax1.set_xlabel('Energy [ev]')
+    ax1.set_ylabel('Photoelectron yield [arb.unit]')
     ax1.legend() 
     ax1.grid()
      
@@ -67,48 +68,48 @@ def plot_ac_inst_invanalysis(ac_inst,original_filename):
     ax2.set_title('1/2 power') 
     ax2.plot(pysi2["rex"], pysi2["rey"], color=cycle[0], marker="o",label='Data')
     ax2.plot(pysi2["rex"], pysi2["fit"], color=cycle[1], linestyle = '-', 
-             label=f'Fit\nR2: {pysi2["r2"]:.2f}\nthreshold: {pysi2["popt"][1]:.2f}\nslope: {pysi2["popt"][0]:.2f}')
+             label=f'Fit\nR2: {pysi2["r2"]:.3f}\nthreshold: {pysi2["popt"][1]:.2f}\nslope: {pysi2["popt"][0]:.2f}')
     ax2.axvline(pysi2["popt"][1], color=cycle[1] )
     ax2.text(pysi2["popt"][1], np.max(pysi2["rey"])*0.2, f'{pysi2["popt"][1]:.2f}')
     
     if 0.49 < ac_inst.metadata["powerNumber"] < 0.51 and ~np.isnan(ac_inst.estimate_value['thresholdEnergy']):
-        ax2.plot(pysi2["rex"], ac_inst.df["guideline"][:leng], color=cycle[2], linestyle = '-', 
+        ax2.plot(pysi2["rex"], ac_inst.df["guideline"], color=cycle[2], linestyle = '-', 
                 label=f'User\nthreshold: {ac_inst.estimate_value["thresholdEnergy"]:.2f}\nslope:{ac_inst.estimate_value["slope"]:.2f}')
         ax2.axvline(ac_inst.estimate_value["thresholdEnergy"], color=cycle[2] )
         ax2.text(ac_inst.estimate_value["thresholdEnergy"], np.max(pysi2["rey"])*0.1, f'{ac_inst.estimate_value["thresholdEnergy"]:.2f}')
 
-    ax2.set_xlabel('Energy')
-    ax2.set_ylabel('$PYS^{1/2}$')
+    ax2.set_xlabel('Energy [eV]')
+    ax2.set_ylabel('Photoelectron yield$^{1/2}$ [arb.unit]')
     ax2.legend()
     ax2.grid()
     
     ax3.set_title('1/3 power') 
     ax3.plot(pysi3["rex"], pysi3["rey"], color=cycle[0], marker="o",label='Data')
     ax3.plot(pysi3["rex"], pysi3["fit"], color=cycle[1], linestyle = '-', 
-             label=f'Fit\nR2: {pysi3["r2"]:.2f}\nthreshold: {pysi3["popt"][1]:.2f}\nslope: {pysi3["popt"][0]:.2f}')
+             label=f'Fit\nR2: {pysi3["r2"]:.3f}\nthreshold: {pysi3["popt"][1]:.2f}\nslope: {pysi3["popt"][0]:.2f}')
     ax3.axvline(pysi3["popt"][1], color=cycle[1] )
     ax3.text(pysi3["popt"][1], np.max(pysi3["rey"])*0.2, f'{pysi3["popt"][1]:.2f}')
     
     if 0.3 < ac_inst.metadata["powerNumber"] < 0.35 and ~np.isnan(ac_inst.estimate_value['thresholdEnergy']):
-        ax3.plot(pysi3["rex"], ac_inst.df["guideline"][:leng], color=cycle[2], linestyle = '-',
+        ax3.plot(pysi3["rex"], ac_inst.df["guideline"], color=cycle[2], linestyle = '-',
                 label=f'User\nthreshold: {ac_inst.estimate_value["thresholdEnergy"]:.2f}\nslope:{ac_inst.estimate_value["slope"]:.2f}')
         ax3.axvline(ac_inst.estimate_value["thresholdEnergy"], color=cycle[2] )
         ax3.text(ac_inst.estimate_value["thresholdEnergy"], np.max(pysi3["rey"])*0.1, f'{ac_inst.estimate_value["thresholdEnergy"]:.2f}')
     
     ax3.set_xlabel('Energy')
-    ax3.set_ylabel('$PYS^{1/3}$')
+    ax3.set_ylabel('Photoelectron yield$^{1/3}$ [arb.unit]')
     ax3.legend() 
     ax3.grid()
     
    
     if pysi2["r2"] > pysi3["r2"]:
-        likeli_Ip =  pysi2["popt"][1]
-        likeli_slope =  pysi2["popt"][0]
-        likeli_power = '1/2'
+        likely_Ip =  pysi2["popt"][1]
+        likely_slope =  pysi2["popt"][0]
+        likely_power = '1/2'
     else:
-        likeli_Ip =  pysi3["popt"][1]
-        likeli_slope =  pysi3["popt"][0]
-        likeli_power = '1/3'
+        likely_Ip =  pysi3["popt"][1]
+        likely_slope =  pysi3["popt"][0]
+        likely_power = '1/3'
     
     # --- info    
     s_info=f'\
@@ -120,7 +121,7 @@ def plot_ac_inst_invanalysis(ac_inst,original_filename):
     Ip={pysi3["popt"][1]:.2f}, Slope={pysi3["popt"][0]:.2f}\n\
     User 1/n={ac_inst.metadata["powerNumber"]:.2f}\n\
     Ip={ac_inst.estimate_value["thresholdEnergy"]:.2f}, Slope={ac_inst.estimate_value["slope"]:.2f}\n\
-    Auto likelihood: 1/n={likeli_power}, Ip={likeli_Ip:.2f}, Slope={likeli_slope:.2f}'
+    Auto likelihood: 1/n={likely_power}, Ip={likely_Ip:.2f}, Slope={likely_slope:.2f}'
     
     # --- info dict
     s_dict={'file':original_filename,
@@ -144,17 +145,17 @@ def plot_ac_inst_invanalysis(ac_inst,original_filename):
                 'Slope':ac_inst.estimate_value["slope"],
                 'Bg':ac_inst.estimate_value["bg"]   
                 },
-            'likeli':{
-                'inv':str(likeli_power),
-                'Ip': likeli_Ip, 
-                'Slope': likeli_slope 
+            'likely':{
+                'inv':str(likely_power),
+                'Ip': likely_Ip, 
+                'Slope': likely_slope 
                 }
             }
     
     return fig, s_info, s_dict
 
 def main():
-    st.title("AC dat Auto Fit")
+    st.title("ACdat AutoFit")
     
     download_zip_file = st.empty()
 
@@ -168,7 +169,7 @@ def main():
                 fp = Path(f.name)
                 fp.write_bytes(uploaded_file.getvalue())
                 
-                acdata = dv.AcConv(f'{f.name}')
+                acdata = dv.AdvAcConv(f'{f.name}')
                 acdata.convert()
 
             fp.unlink()
